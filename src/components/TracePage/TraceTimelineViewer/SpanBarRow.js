@@ -37,6 +37,7 @@ type SpanBarRowProps = {
   label: string,
   onDetailToggled: string => void,
   onChildrenToggled: string => void,
+  onChildrenRowToggled: number => void,
   operationName: string,
   numTicks: number,
   rpc: ?{
@@ -77,6 +78,10 @@ export default class SpanBarRow extends React.PureComponent<SpanBarRowProps> {
     this.props.onChildrenToggled(this.props.spanID);
   };
 
+  _childrenRowToggle = () => {
+    this.props.onChildrenRowToggled(this.props.depth); // 关掉同深度的代码
+  };
+
   render() {
     const {
       className,
@@ -114,6 +119,7 @@ export default class SpanBarRow extends React.PureComponent<SpanBarRowProps> {
           ${className || ''}
           ${isDetailExpanded ? 'is-expanded' : ''}
           ${isFilteredOut ? 'is-filtered-out' : ''}
+          ${!isParent ? 'is-hidden' : ''}
         `}
       >
         <TimelineRow.Cell className="span-name-column" width={columnDivision}>
@@ -123,6 +129,7 @@ export default class SpanBarRow extends React.PureComponent<SpanBarRowProps> {
               hasChildren={isParent}
               childrenVisible={isChildrenExpanded}
               onClick={isParent ? this._childrenToggle : null}
+              onRowClick={isParent ? this._childrenRowToggle : null}
             />
             <a
               className={`span-name ${isDetailExpanded ? 'is-detail-expanded' : ''}`}

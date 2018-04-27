@@ -35,8 +35,9 @@ import generateActionTypes from '../../../utils/generate-action-types';
 //   detailStates: Map<spanID, DetailState>
 // }
 
-export function newInitialState({ spanNameColumnWidth = null, traceID = null } = {}) {
+export function newInitialState({ spanNameColumnWidth = null, traceID = null, trace = null } = {}) {
   return {
+    trace,
     traceID,
     spanNameColumnWidth: spanNameColumnWidth || 0.25,
     childrenHiddenIDs: new Set(),
@@ -49,6 +50,7 @@ export const actionTypes = generateActionTypes('@jaeger-ui/trace-timeline-viewer
   'SET_TRACE',
   'SET_SPAN_NAME_COLUMN_WIDTH',
   'CHILDREN_TOGGLE',
+  'CHILDREN_ROW_TOGGLE',
   'DETAIL_TOGGLE',
   'DETAIL_TAGS_TOGGLE',
   'DETAIL_PROCESS_TOGGLE',
@@ -58,7 +60,7 @@ export const actionTypes = generateActionTypes('@jaeger-ui/trace-timeline-viewer
 ]);
 
 const fullActions = createActions({
-  [actionTypes.SET_TRACE]: traceID => ({ traceID }),
+  [actionTypes.SET_TRACE]: (trace, traceID) => ({ trace, traceID }),
   [actionTypes.SET_SPAN_NAME_COLUMN_WIDTH]: width => ({ width }),
   [actionTypes.CHILDREN_TOGGLE]: spanID => ({ spanID }),
   [actionTypes.DETAIL_TOGGLE]: spanID => ({ spanID }),
@@ -67,18 +69,19 @@ const fullActions = createActions({
   [actionTypes.DETAIL_LOGS_TOGGLE]: spanID => ({ spanID }),
   [actionTypes.DETAIL_LOG_ITEM_TOGGLE]: (spanID, logItem) => ({ logItem, spanID }),
   [actionTypes.FIND]: (trace, searchText) => ({ searchText, trace }),
+  [actionTypes.CHILDREN_ROW_TOGGLE]: depth => ({ depth }),
 });
 
 export const actions = fullActions.jaegerUi.traceTimelineViewer;
 
 function setTrace(state, { payload }) {
-  const { traceID } = payload;
+  const { traceID, trace } = payload;
   if (traceID === state.traceID) {
     return state;
   }
   // preserve spanNameColumnWidth when resetting state
   const { spanNameColumnWidth } = state;
-  return newInitialState({ spanNameColumnWidth, traceID });
+  return newInitialState({ spanNameColumnWidth, traceID, trace });
 }
 
 function setColumnWidth(state, { payload }) {
@@ -144,6 +147,20 @@ function find(state, { payload }) {
   return { ...state, findMatchesIDs };
 }
 
+function childrenRowToggle(state, { payload }) {
+  const childrenHiddenIDs = new Set(state.childrenHiddenIDs);
+  state.trace.spans.forEach(item => {
+    if (item.hasChildren && payload.depth === item.depth) {
+      if (childrenHiddenIDs.has(item.spanID)) {
+        childrenHiddenIDs.delete(item.spanID);
+      } else {
+        childrenHiddenIDs.add(item.spanID);
+      }
+    }
+  });
+  return { ...state, childrenHiddenIDs };
+}
+
 export default handleActions(
   {
     [actionTypes.SET_TRACE]: setTrace,
@@ -155,6 +172,7 @@ export default handleActions(
     [actionTypes.DETAIL_LOGS_TOGGLE]: detailLogsToggle,
     [actionTypes.DETAIL_LOG_ITEM_TOGGLE]: detailLogItemToggle,
     [actionTypes.FIND]: find,
+    [actionTypes.CHILDREN_ROW_TOGGLE]: childrenRowToggle,
   },
   newInitialState()
 );

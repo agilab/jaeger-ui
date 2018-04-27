@@ -18,6 +18,10 @@ limitations under the License.
   opacity: 0.2;
 }
 
+.span-row.is-filtered-out.is-hidden {
+  display: none;
+}
+
 .span-name-column {
   position: relative;
   white-space: nowrap;

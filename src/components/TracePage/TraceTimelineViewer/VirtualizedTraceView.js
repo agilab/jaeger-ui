@@ -48,6 +48,7 @@ type RowState = {
 type VirtualizedTraceViewProps = {
   childrenHiddenIDs: Set<string>,
   childrenToggle: string => void,
+  childrenRowToggle: (?number) => void,
   currentViewRangeTime: [number, number],
   detailLogItemToggle: (string, Log) => void,
   detailLogsToggle: string => void,
@@ -59,7 +60,7 @@ type VirtualizedTraceViewProps = {
   findMatchesIDs: Set<string>,
   registerAccessors: Accessors => void,
   setSpanNameColumnWidth: number => void,
-  setTrace: (?string) => void,
+  setTrace: (?Trace, ?string) => void,
   spanNameColumnWidth: number,
   textFilter: ?string,
   trace: Trace,
@@ -143,7 +144,7 @@ export class VirtualizedTraceViewImpl extends React.PureComponent<VirtualizedTra
 
     const { find, setTrace, textFilter } = props;
     const traceID = trace ? trace.traceID : null;
-    setTrace(traceID);
+    setTrace(trace, traceID);
     if (textFilter) {
       find(trace, textFilter);
     }
@@ -169,7 +170,7 @@ export class VirtualizedTraceViewImpl extends React.PureComponent<VirtualizedTra
       trace: nextTrace,
     } = nextProps;
     if (trace !== nextTrace) {
-      setTrace(nextTrace ? nextTrace.traceID : null);
+      setTrace(nextTrace, nextTrace ? nextTrace.traceID : null);
       if (nextTextFilter) {
         find(nextTrace, nextTextFilter);
       }
@@ -277,6 +278,7 @@ export class VirtualizedTraceViewImpl extends React.PureComponent<VirtualizedTra
     const {
       childrenHiddenIDs,
       childrenToggle,
+      childrenRowToggle,
       currentViewRangeTime,
       detailStates,
       detailToggle,
@@ -340,6 +342,7 @@ export class VirtualizedTraceViewImpl extends React.PureComponent<VirtualizedTra
           numTicks={NUM_TICKS}
           onDetailToggled={detailToggle}
           onChildrenToggled={childrenToggle}
+          onChildrenRowToggled={childrenRowToggle}
           operationName={span.operationName}
           rpc={rpc}
           serviceName={span.process.serviceName}
@@ -390,7 +393,7 @@ export class VirtualizedTraceViewImpl extends React.PureComponent<VirtualizedTra
       </div>
     );
   }
-
+  /* eslint-disable */
   render() {
     return (
       <div className="VirtualizedTraceView--spans">
@@ -401,7 +404,7 @@ export class VirtualizedTraceViewImpl extends React.PureComponent<VirtualizedTra
           itemRenderer={this.renderRow}
           viewBuffer={300}
           viewBufferMin={100}
-          itemsWrapperClassName="VirtualizedTraceView--rowsWrapper"
+          itemsWrapperClassName={'VirtualizedTraceView--rowsWrapper'}
           getKeyFromIndex={this.getKeyFromIndex}
           getIndexFromKey={this.getIndexFromKey}
           windowScroller

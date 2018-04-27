@@ -25,16 +25,28 @@ type SpanTreeOffsetProps = {
   hasChildren: boolean,
   childrenVisible: boolean,
   onClick: ?() => void,
+  onRowClick: ?() => void,
 };
 
 export default function SpanTreeOffset(props: SpanTreeOffsetProps) {
-  const { level, hasChildren, childrenVisible, onClick } = props;
-  const wrapperProps = hasChildren ? { onClick, role: 'switch', 'aria-checked': childrenVisible } : null;
+  const { level, hasChildren, childrenVisible, onClick, onRowClick } = props;
+  const wrapperProps = hasChildren ? { role: 'switch', 'aria-checked': childrenVisible } : null;
   const icon = hasChildren && (childrenVisible ? <IoIosArrowDown /> : <IoChevronRight />);
   return (
     <span className={`SpanTreeOffset ${hasChildren ? 'is-parent' : ''}`} {...wrapperProps}>
-      <span style={{ paddingLeft: `${level * 20}px` }} />
-      {icon && <span className="SpanTreeOffset--iconWrapper">{icon}</span>}
+      {hasChildren ? (
+        <span onClick={onRowClick} style={{ paddingLeft: `${level * 20 - 5}px` }}>
+          {' '}
+          {childrenVisible ? '➖' : '➕'}{' '}
+        </span>
+      ) : (
+        <span style={{ paddingLeft: `${level * 20 + 12}px` }} />
+      )}
+      {icon && (
+        <span onClick={onClick} className="SpanTreeOffset--iconWrapper">
+          {icon}
+        </span>
+      )}
     </span>
   );
 }
@@ -43,4 +55,5 @@ SpanTreeOffset.defaultProps = {
   hasChildren: false,
   childrenVisible: false,
   onClick: null,
+  onRowClick: null,
 };
